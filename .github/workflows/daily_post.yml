@@ -27,7 +27,7 @@ jobs:
       - name: Run Generator Script
         run: python generate_and_post.py
 
-      - name: Upload Images Artifact
+      - name: Save Generated Images
         uses: actions/upload-artifact@v4
         with:
           name: Mandi-Generated-Images
