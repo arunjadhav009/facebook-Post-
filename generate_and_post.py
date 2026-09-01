@@ -9,6 +9,7 @@ print("1. Google Sheet से डेटा लोड हो रहा है..."
 df = pd.read_csv(CSV_URL)
 df.fillna("---", inplace=True)
 
+# ताज़ा तारीख का डेटा फ़िल्टर करें
 if 'Date' in df.columns and len(df) > 0:
     latest_date = str(df.iloc[-1]['Date']).strip()
     df = df[df['Date'].astype(str).str.strip() == latest_date]
@@ -17,7 +18,10 @@ else:
 
 records = df.to_dict('records')
 records_per_page = 10
-total_pages = (len(records) + records_per_page - 1) // records_per_page
+total_records = len(records)
+total_pages = (total_records + records_per_page - 1) // records_per_page
+
+print(f"एकूण रेकॉर्ड्स: {total_records} | एकूण पेजेस/इमेजिस बनणार: {total_pages}")
 
 os.makedirs("output_images", exist_ok=True)
 
@@ -32,7 +36,7 @@ def generate_html(page_records, current_page, total_p, date_str):
         modal = r.get('Modal', '0')
         rows_html += f"""
         <tr>
-            <td style="text-align:left; font-weight:bold;">{apmc}</td>
+            <td style="text-align:left; font-weight:bold; font-size:18px;">{apmc}</td>
             <td>{variety}</td>
             <td>{qty}</td>
             <td style="color:#e53e3e; font-weight:bold;">₹{lrate}</td>
@@ -83,7 +87,7 @@ def generate_html(page_records, current_page, total_p, date_str):
   }}
   td {{
     font-size: 19px;
-    padding: 12px 8px;
+    padding: 11px 8px;
     text-align: center;
     border-bottom: 1px solid #edf2f7;
     color: #334155;
@@ -144,8 +148,8 @@ with sync_playwright() as p:
         page.set_content(html_code)
         img_path = f"output_images/page_{i+1}.png"
         page.screenshot(path=img_path)
-        print(f"तैयार हो गई: {img_path}")
+        print(f"[{i+1}/{total_pages}] इमेज तयार झाली: {img_path}")
 
     browser.close()
 
-print("सफलतापूर्वक सभी इमेज बन गईं!")
+print(f"\nअभिनंदन! एकूण {total_pages} इमेजिस 'output_images' फोल्डरमध्ये तयार झाल्या.")
