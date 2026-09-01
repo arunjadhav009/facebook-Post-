@@ -24,14 +24,14 @@ def main():
     print(f"Image created successfully: {output_image}")
 
     if webhook_url and os.path.exists(output_image):
-        print(f"Sending image to n8n Webhook: {webhook_url}")
+        print(f"Sending raw binary image to n8n Webhook: {webhook_url}")
         with open(output_image, "rb") as img_file:
-            files = {
-                "data": (output_image, img_file, "image/png")
-            }
-            response = requests.post(webhook_url, files=files)
-            print(f"n8n Response Status Code: {response.status_code}")
-            print(f"n8n Response: {response.text}")
+            image_bytes = img_file.read()
+            
+        headers = {"Content-Type": "image/png"}
+        response = requests.post(webhook_url, data=image_bytes, headers=headers)
+        print(f"n8n Response Status Code: {response.status_code}")
+        print(f"n8n Response: {response.text}")
     else:
         print("Error: N8N_WEBHOOK_URL missing or image file not found.")
         sys.exit(1)
