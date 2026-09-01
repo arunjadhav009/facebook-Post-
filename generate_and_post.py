@@ -1,17 +1,40 @@
 import os
+import sys
 import requests
+from playwright.sync_api import sync_playwright
 
-N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL", "").strip()
-img_path = "output.png"  # किंवा तुमच्या जनरेट झालेल्या इमेजचे नाव
+def main():
+    html_content = os.environ.get("INPUT_HTML", "").strip()
+    webhook_url = os.environ.get("N8N_WEBHOOK_URL", "").strip()
+    output_image = "mandi_bhav_page.png"
 
-if N8N_WEBHOOK_URL and os.path.exists(img_path):
-    print(f"Sending image to: {N8N_WEBHOOK_URL}")
-    
-    # n8n च्या बायनरी 'data' प्रॉपर्टीसाठी फाईल पाठवणे
-    with open(img_path, "rb") as image_file:
-        files = {
-            "data": (os.path.basename(img_path), image_file, "image/png")
-        }
-        response = requests.post(N8N_WEBHOOK_URL, files=files)
-        print(f"Status Code: {response.status_code}")
-        print(f"Response: {response.text}")
+    if not html_content:
+        print("Error: No INPUT_HTML content provided.")
+        sys.exit(1)
+
+    print("Generating 1080x1080 HD image with Playwright...")
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1080, "height": 1080})
+        page.set_content(html_content, wait_until="networkidle")
+        page.screenshot(path=output_image, full_page=False)
+        browser.close()
+
+    print(f"Image created successfully: {output_image}")
+
+    if webhook_url and os.path.exists(output_image):
+        print(f"Sending image to n8n Webhook: {webhook_url}")
+        with open(output_image, "rb") as img_file:
+            files = {
+                "data": (output_image, img_file, "image/png")
+            }
+            response = requests.post(webhook_url, files=files)
+            print(f"n8n Response Status Code: {response.status_code}")
+            print(f"n8n Response: {response.text}")
+    else:
+        print("Error: N8N_WEBHOOK_URL missing or image file not found.")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
