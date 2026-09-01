@@ -2,8 +2,11 @@ name: Generate Mandi Images Only
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '30 0 * * *'
+    inputs:
+      html_content:
+        description: 'HTML Data from n8n'
+        required: false
+        default: ''
 
 jobs:
   build-images:
@@ -17,14 +20,16 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Devanagari Fonts & Packages
+      - name: Install Fonts and Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-deva
-          pip install pandas requests playwright
+          pip install playwright pandas requests
           playwright install --with-deps chromium
 
       - name: Run Generator Script
+        env:
+          INPUT_HTML: ${{ github.event.inputs.html_content }}
         run: python generate_and_post.py
 
       - name: Save Generated Images
