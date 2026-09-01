@@ -3,12 +3,8 @@ name: Generate Mandi Images Only
 on:
   workflow_dispatch:
     inputs:
-      html_content:
-        description: 'HTML content to render'
-        required: true
-        type: string
-      webhook_url:
-        description: 'n8n Webhook URL to receive image'
+      html_list:
+        description: 'JSON list of all HTML pages'
         required: true
         type: string
 
@@ -34,7 +30,6 @@ jobs:
 
       - name: Run Generator Script
         env:
-          INPUT_HTML: ${{ github.event.inputs.html_content }}
-          N8N_WEBHOOK_URL: ${{ github.event.inputs.webhook_url }}
+          INPUT_HTML_LIST: ${{ github.event.inputs.html_list }}
         run: |
           python generate_and_post.py
