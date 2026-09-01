@@ -3,10 +3,12 @@ name: Generate Mandi Images Only
 on:
   workflow_dispatch:
     inputs:
-      html_content:
-        description: 'HTML Data from n8n'
-        required: false
-        default: ''
+      all_pages_data:
+        description: 'All Pages JSON Data'
+        required: true
+      webhook_url:
+        description: 'n8n Webhook URL'
+        required: true
 
 jobs:
   build-images:
@@ -24,17 +26,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-deva
-          pip install playwright pandas requests
+          pip install playwright requests
           playwright install --with-deps chromium
 
       - name: Run Generator Script
         env:
-          INPUT_HTML: ${{ github.event.inputs.html_content }}
+          INPUT_DATA: ${{ github.event.inputs.all_pages_data }}
+          N8N_WEBHOOK_URL: ${{ github.event.inputs.webhook_url }}
         run: python generate_and_post.py
-
-      - name: Save Generated Images
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Mandi-Generated-Images
-          path: output_images/
