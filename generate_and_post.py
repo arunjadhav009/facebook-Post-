@@ -40,9 +40,6 @@ def generate_html_page(data):
 <html lang="mr">
 <head>
 <meta charset="UTF-8">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   * {{
     box-sizing: border-box;
@@ -50,14 +47,14 @@ def generate_html_page(data):
     padding: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
-    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "dlig" 1;
+    text-rendering: geometricPrecision;
   }}
   body {{
     width: 1080px;
     height: 1080px;
     background: #f1f5f9;
-    font-family: 'Noto Sans Devanagari', 'Noto Sans', sans-serif;
+    font-family: "Noto Sans Devanagari", "Nakula", "Lohit Devanagari", sans-serif;
     padding: 24px;
     display: flex;
     flex-direction: column;
@@ -194,13 +191,15 @@ def main():
             args=[
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
-                "--font-render-hinting=none",
+                "--lang=mr-IN,mr",
+                "--font-render-hinting=full",
                 "--enable-font-antialiasing"
             ]
         )
         context = browser.new_context(
             viewport={"width": 1080, "height": 1080},
-            device_scale_factor=2
+            device_scale_factor=2,
+            locale="mr-IN"
         )
         page = context.new_page()
 
@@ -210,7 +209,7 @@ def main():
             image_name = f"mandi_page_{index + 1}.png"
 
             print(f"Generating Ultra-HD Image {index + 1}/{len(pages_data)}: {image_name}...")
-            page.set_content(html_content, wait_until="networkidle")
+            page.set_content(html_content, wait_until="load")
             page.evaluate("document.fonts.ready")
             page.screenshot(path=image_name, full_page=False)
 
