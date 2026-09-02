@@ -16,8 +16,7 @@ def main():
 
     try:
         html_pages = json.loads(raw_html_list)
-    except Exception as e:
-        # सिंगल HTML असल्यास लिस्ट बनवा
+    except Exception:
         html_pages = [raw_html_list]
 
     print(f"Total pages to generate: {len(html_pages)}")
@@ -25,14 +24,31 @@ def main():
     photo_ids = []
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page(viewport={"width": 1080, "height": 1080})
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--font-render-hinting=none",
+                "--enable-font-antialiasing"
+            ]
+        )
+        
+        # High-DPI 2x Retina rendering for ultra-sharp Marathi text and numbers
+        context = browser.new_context(
+            viewport={"width": 1080, "height": 1080},
+            device_scale_factor=2
+        )
+        page = context.new_page()
 
         for index, html_content in enumerate(html_pages):
             image_name = f"mandi_page_{index + 1}.png"
-            print(f"Generating Image {index + 1}/{len(html_pages)}: {image_name}...")
+            print(f"Rendering High-Resolution Image {index + 1}/{len(html_pages)}: {image_name}...")
             
             page.set_content(html_content, wait_until="networkidle")
+            # फॉन्ट पूर्णपणे लोड झाल्याची खात्री करणे
+            page.evaluate("document.fonts.ready")
+            
             page.screenshot(path=image_name, full_page=False)
 
             # Facebook वर Unpublished फोटो अपलोड करणे
