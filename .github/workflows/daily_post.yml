@@ -3,8 +3,8 @@ name: Generate Mandi Images Only
 on:
   workflow_dispatch:
     inputs:
-      html_list:
-        description: 'JSON list of all HTML pages'
+      pages_json:
+        description: 'Compact JSON data of mandi pages'
         required: true
         type: string
 
@@ -30,6 +30,6 @@ jobs:
 
       - name: Run Generator Script
         env:
-          INPUT_HTML_LIST: ${{ github.event.inputs.html_list }}
+          PAGES_JSON: ${{ github.event.inputs.pages_json }}
         run: |
           python generate_and_post.py
