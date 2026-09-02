@@ -5,7 +5,14 @@ import requests
 from playwright.sync_api import sync_playwright
 
 PAGE_ID = "609269705592123"
+IG_USER_ID = "17841412056274162"
 FB_TOKEN = "EAAOiHd2BNnwBSRqv9aKYlAunjYxuVj1cl8W1Os57BlHwAJPQJhhqqZBHQ4xHQRbru8dgM3fbhzK90TrRoZBRB2CV1lV0jsYrgI01t2A7alZCJCbSdhZAcQUZCZCwlmYnOdrj585llVWO1BVZCuJ8CcWUM4ZBHPu2yANurGZCqBAFeZANlZBV13RT3xUZCANfvZCz8wkY55mAQuC67rYJh8jPiCaOz7XPE"
+
+POST_CAPTION = (
+    "महाराष्ट्र राज्य कांदा बाजारभाव\n\n"
+    "दररोजच्या ताज्या बाजारभावासाठी पेजला नक्की फॉलो करा!\n"
+    "#कांदा #बाजारभाव #महाराष्ट्र #OnionRates #Maharashtra #greensourceonion"
+)
 
 def generate_html_page(data):
     rows = data.get("PageData", [])
@@ -86,7 +93,6 @@ def generate_html_page(data):
     font-size: 17px;
     font-weight: 700;
   }}
-  /* डेटा नेहमी वरूनच (Top-aligned) सुरू राहण्यासाठी */
   .table-wrapper {{
     background: #ffffff;
     border-radius: 14px;
@@ -104,9 +110,6 @@ def generate_html_page(data):
     border-collapse: collapse;
     table-layout: fixed;
   }}
-  thead {{
-    display: table-header-group;
-  }}
   thead th {{
     background: #1e293b;
     color: #ffffff;
@@ -116,12 +119,6 @@ def generate_html_page(data):
     text-align: center;
     border-bottom: 2px solid #0f172a;
     height: 48px;
-  }}
-  tbody {{
-    display: table-row-group;
-  }}
-  tbody tr {{
-    vertical-align: middle;
   }}
   .footer-bar {{
     background: #0f172a;
@@ -190,7 +187,8 @@ def main():
     pages_data = json.loads(raw_pages)
     print(f"Total pages received: {len(pages_data)}")
 
-    photo_ids = []
+    fb_photo_ids = []
+    ig_image_urls = []
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
@@ -216,6 +214,7 @@ def main():
             page.set_content(html_content, wait_until="load")
             page.screenshot(path=image_name, full_page=False)
 
+            # १. Facebook वर Unpublished फोटो अपलोड
             upload_url = f"https://graph.facebook.com/v19.0/{PAGE_ID}/photos"
             with open(image_name, "rb") as img_file:
                 files = {"source": img_file}
@@ -224,29 +223,79 @@ def main():
                 result = res.json()
 
             if "id" in result:
-                print(f"Page {index + 1} uploaded. Photo ID: {result['id']}")
-                photo_ids.append(result["id"])
+                photo_id = result["id"]
+                fb_photo_ids.append(photo_id)
+                print(f"Page {index + 1} uploaded to FB. Photo ID: {photo_id}")
+
+                # २. Instagram साठी Facebook कडून फोटोची Public URL मिळवणे
+                pic_req = requests.get(
+                    f"https://graph.facebook.com/v19.0/{photo_id}?fields=images&access_token={FB_TOKEN}"
+                ).json()
+                if "images" in pic_req and len(pic_req["images"]) > 0:
+                    public_url = pic_req["images"][0]["source"]
+                    ig_image_urls.append(public_url)
             else:
                 print(f"Error uploading page {index + 1}: {result}")
 
         browser.close()
 
-    if not photo_ids:
+    if not fb_photo_ids:
         print("No photos uploaded. Exiting.")
         sys.exit(1)
 
-    print("Publishing final Multi-Photo Carousel Post to Facebook...")
+    # Facebook वर Multi-Photo Post करणे
+    print("\n--- 1. Publishing to Facebook ---")
     feed_url = f"https://graph.facebook.com/v19.0/{PAGE_ID}/feed"
-    attached_media = [{"media_fbid": pid} for pid in photo_ids]
-
+    attached_media = [{"media_fbid": pid} for pid in fb_photo_ids]
     post_payload = {
-        "message": "महाराष्ट्र राज्य कांदा बाजारभाव\n\nदररोजच्या ताज्या बाजारभावासाठी पेजला नक्की फॉलो करा!\n#कांदा #बाजारभाव #महाराष्ट्र #OnionRates #Maharashtra",
+        "message": POST_CAPTION,
         "attached_media": json.dumps(attached_media),
         "access_token": FB_TOKEN
     }
+    fb_resp = requests.post(feed_url, data=post_payload)
+    print("Facebook Post Response:", fb_resp.text)
 
-    resp = requests.post(feed_url, data=post_payload)
-    print("Facebook Post Response:", resp.text)
+    # Instagram वर Multi-Photo Carousel Post करणे
+    if ig_image_urls:
+        print("\n--- 2. Publishing to Instagram (@greensourceonion) ---")
+        ig_container_ids = []
+
+        # प्रत्येक इमेजचा Instagram Item Container तयार करणे
+        for idx, img_url in enumerate(ig_image_urls):
+            create_item_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media"
+            item_payload = {
+                "image_url": img_url,
+                "is_carousel_item": "true",
+                "access_token": FB_TOKEN
+            }
+            c_res = requests.post(create_item_url, data=item_payload).json()
+            if "id" in c_res:
+                ig_container_ids.append(c_res["id"])
+                print(f"IG Carousel item {idx + 1} container created: {c_res['id']}")
+            else:
+                print(f"Error creating IG item {idx + 1}: {c_res}")
+
+        # सर्व आयटम्स एकत्र करून मुख्य Carousel Container तयार करणे
+        if ig_container_ids:
+            main_carousel_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media"
+            main_payload = {
+                "media_type": "CAROUSEL",
+                "children": json.dumps(ig_container_ids),
+                "caption": POST_CAPTION,
+                "access_token": FB_TOKEN
+            }
+            main_res = requests.post(main_carousel_url, data=main_payload).json()
+
+            if "id" in main_res:
+                creation_id = main_res["id"]
+                print(f"Main IG Carousel Container ID: {creation_id}")
+
+                # फायनल पब्लिश करणे
+                publish_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media_publish"
+                pub_res = requests.post(publish_url, data={"creation_id": creation_id, "access_token": FB_TOKEN}).json()
+                print("Instagram Publish Response:", pub_res)
+            else:
+                print("Error creating main IG carousel:", main_res)
 
 if __name__ == "__main__":
     main()
