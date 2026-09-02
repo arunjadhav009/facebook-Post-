@@ -24,7 +24,8 @@ jobs:
       - name: Install Fonts and Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y fonts-deva fonts-nakula fonts-sahadeva
+          sudo apt-get install -y fonts-noto-core fonts-noto-ui-core fonts-deva
+          fc-cache -f -v
           pip install playwright requests
           playwright install --with-deps chromium
 
