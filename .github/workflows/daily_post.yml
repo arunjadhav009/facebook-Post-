@@ -21,13 +21,16 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Marathi Devanagari Fonts
+      - name: Install Pure Devanagari Unicode Fonts
         run: |
           sudo apt-get update
-          sudo apt-get install -y fonts-deva fonts-nakula fonts-sahadeva fonts-lohit-deva
-          # थेट Google Noto Sans Devanagari सिस्टीममध्ये इन्स्टॉल करणे
+          # जुने विसंगत फॉन्ट्स काढणे आणि अधिकृत Noto Devanagari इन्स्टॉल करणे
+          sudo apt-get remove -y fonts-nakula fonts-sahadeva || true
+          sudo apt-get install -y fonts-noto-core fonts-noto-extra fonts-noto-ui-core
+          # थेट Google चे अधिकृत Noto Sans Devanagari Static Fonts डाउनलोड करणे
           mkdir -p ~/.local/share/fonts
-          curl -s -L -o ~/.local/share/fonts/NotoSansDevanagari-Bold.ttf "https://github.com/google/fonts/raw/main/ofl/notosansdevanagari/NotoSansDevanagari%5Bwdth%2Cwght%5D.ttf"
+          curl -s -L -o ~/.local/share/fonts/NotoSansDevanagari-Bold.ttf "https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Bold.ttf"
+          curl -s -L -o ~/.local/share/fonts/NotoSansDevanagari-Regular.ttf "https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf"
           fc-cache -f -v
           pip install playwright requests
           playwright install --with-deps chromium
