@@ -12,6 +12,11 @@ jobs:
   build-images:
     runs-on: ubuntu-latest
 
+    # जुने रन्स डिलीट करण्यासाठी लागणाऱ्या परवानग्या
+    permissions:
+      actions: write
+      contents: read
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -24,10 +29,8 @@ jobs:
       - name: Install Pure Devanagari Unicode Fonts
         run: |
           sudo apt-get update
-          # जुने विसंगत फॉन्ट्स काढणे आणि अधिकृत Noto Devanagari इन्स्टॉल करणे
           sudo apt-get remove -y fonts-nakula fonts-sahadeva || true
           sudo apt-get install -y fonts-noto-core fonts-noto-extra fonts-noto-ui-core
-          # थेट Google चे अधिकृत Noto Sans Devanagari Static Fonts डाउनलोड करणे
           mkdir -p ~/.local/share/fonts
           curl -s -L -o ~/.local/share/fonts/NotoSansDevanagari-Bold.ttf "https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Bold.ttf"
           curl -s -L -o ~/.local/share/fonts/NotoSansDevanagari-Regular.ttf "https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf"
@@ -40,3 +43,12 @@ jobs:
           PAGES_JSON: ${{ github.event.inputs.pages_json }}
         run: |
           python generate_and_post.py
+
+      # यशस्वी झाल्यानंतर फक्त शेवटचे ३ रन्स ठेवून बाकीचे जुने रन्स डिलीट करणे
+      - name: Clean Old Workflow Runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_minimum_runs: 3
+          keep_minimum_runs: 3
