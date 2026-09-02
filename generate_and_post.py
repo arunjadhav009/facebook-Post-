@@ -26,13 +26,13 @@ def generate_html_page(data):
         modal = r.get("Modal", "0")
 
         table_rows += f"""
-        <tr style="background: {bg}; border-bottom: 1px solid #e2e8f0;">
-          <td style="text-align: left; padding: 7px 12px; font-weight: 700; font-size: 19px; color: #1e293b;">{apmc}</td>
-          <td style="text-align: center; padding: 7px 6px; font-size: 17px; color: #475569; font-weight: 500;">{variety}</td>
-          <td style="text-align: center; padding: 7px 6px; font-size: 18px; font-weight: 700; color: #0f172a;">{qty}</td>
-          <td style="text-align: center; padding: 7px 6px; font-size: 18px; font-weight: 700; color: #dc2626;">₹{lrate}</td>
-          <td style="text-align: center; padding: 7px 6px; font-size: 18px; font-weight: 700; color: #16a34a;">₹{hrate}</td>
-          <td style="text-align: center; padding: 7px 6px; font-size: 19px; font-weight: 800; color: #881337; background: rgba(225, 29, 72, 0.08); border-radius: 6px;">₹{modal}</td>
+        <tr style="background: {bg}; border-bottom: 1px solid #e2e8f0; height: 50px;">
+          <td style="text-align: left; padding: 6px 14px; font-weight: 700; font-size: 19px; color: #1e293b;">{apmc}</td>
+          <td style="text-align: center; padding: 6px 8px; font-size: 17px; color: #475569; font-weight: 500;">{variety}</td>
+          <td style="text-align: center; padding: 6px 8px; font-size: 18px; font-weight: 700; color: #0f172a;">{qty}</td>
+          <td style="text-align: center; padding: 6px 8px; font-size: 18px; font-weight: 700; color: #dc2626;">₹{lrate}</td>
+          <td style="text-align: center; padding: 6px 8px; font-size: 18px; font-weight: 700; color: #16a34a;">₹{hrate}</td>
+          <td style="text-align: center; padding: 6px 8px; font-size: 19px; font-weight: 800; color: #881337; background: rgba(225, 29, 72, 0.08); border-radius: 6px;">₹{modal}</td>
         </tr>
         """
 
@@ -52,7 +52,7 @@ def generate_html_page(data):
     width: 1080px;
     height: 1080px;
     background: #f1f5f9;
-    font-family: 'Noto Sans Devanagari', 'Noto Sans', sans-serif;
+    font-family: 'Noto Sans Devanagari', 'Lohit Devanagari', sans-serif;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -86,6 +86,7 @@ def generate_html_page(data):
     font-size: 17px;
     font-weight: 700;
   }}
+  /* डेटा नेहमी वरूनच (Top-aligned) सुरू राहण्यासाठी */
   .table-wrapper {{
     background: #ffffff;
     border-radius: 14px;
@@ -96,20 +97,31 @@ def generate_html_page(data):
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
   }}
   table {{
     width: 100%;
-    height: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
+  }}
+  thead {{
+    display: table-header-group;
   }}
   thead th {{
     background: #1e293b;
     color: #ffffff;
     font-size: 18px;
     font-weight: 700;
-    padding: 10px 8px;
+    padding: 12px 8px;
     text-align: center;
     border-bottom: 2px solid #0f172a;
+    height: 48px;
+  }}
+  tbody {{
+    display: table-row-group;
+  }}
+  tbody tr {{
+    vertical-align: middle;
   }}
   .footer-bar {{
     background: #0f172a;
