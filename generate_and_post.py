@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import json
 import requests
 from playwright.sync_api import sync_playwright
@@ -275,8 +276,11 @@ def main():
             else:
                 print(f"Error creating IG item {idx + 1}: {c_res}")
 
-        # सर्व आयटम्स एकत्र करून मुख्य Carousel Container तयार करणे
         if ig_container_ids:
+            # आयटम्स प्रोसेस होण्यासाठी सुरुवातीला ८ सेकंद वाट पाहणे
+            print("Waiting 8 seconds for item containers to process...")
+            time.sleep(8)
+
             main_carousel_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media"
             main_payload = {
                 "media_type": "CAROUSEL",
@@ -290,10 +294,29 @@ def main():
                 creation_id = main_res["id"]
                 print(f"Main IG Carousel Container ID: {creation_id}")
 
-                # फायनल पब्लिश करणे
-                publish_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media_publish"
-                pub_res = requests.post(publish_url, data={"creation_id": creation_id, "access_token": FB_TOKEN}).json()
-                print("Instagram Publish Response:", pub_res)
+                # कंटेनर स्टेटस 'FINISHED' होईपर्यंत तपासणे (Status Polling Loop)
+                status_url = f"https://graph.facebook.com/v19.0/{creation_id}?fields=status_code&access_token={FB_TOKEN}"
+                is_ready = False
+                for attempt in range(1, 10):
+                    print(f"Checking media readiness (Attempt {attempt}/9)...")
+                    s_res = requests.get(status_url).json()
+                    status = s_res.get("status_code", "")
+                    print(f"Current Status: {status}")
+
+                    if status == "FINISHED":
+                        is_ready = True
+                        break
+                    elif status == "ERROR":
+                        print("Meta reported an error processing this carousel container.")
+                        break
+                    time.sleep(5)
+
+                if is_ready:
+                    publish_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media_publish"
+                    pub_res = requests.post(publish_url, data={"creation_id": creation_id, "access_token": FB_TOKEN}).json()
+                    print("Instagram Final Publish Response:", pub_res)
+                else:
+                    print("Could not publish: Media container was not ready in time.")
             else:
                 print("Error creating main IG carousel:", main_res)
 
