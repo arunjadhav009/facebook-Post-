@@ -47,14 +47,12 @@ def generate_html_page(data):
     padding: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "dlig" 1;
-    text-rendering: geometricPrecision;
   }}
   body {{
     width: 1080px;
     height: 1080px;
     background: #f1f5f9;
-    font-family: "Noto Sans Devanagari", "Nakula", "Lohit Devanagari", sans-serif;
+    font-family: 'Noto Sans Devanagari', 'Noto Sans', sans-serif;
     padding: 24px;
     display: flex;
     flex-direction: column;
@@ -191,15 +189,12 @@ def main():
             args=[
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
-                "--lang=mr-IN,mr",
-                "--font-render-hinting=full",
-                "--enable-font-antialiasing"
+                "--font-render-hinting=none"
             ]
         )
         context = browser.new_context(
             viewport={"width": 1080, "height": 1080},
-            device_scale_factor=2,
-            locale="mr-IN"
+            device_scale_factor=2
         )
         page = context.new_page()
 
@@ -210,7 +205,6 @@ def main():
 
             print(f"Generating Ultra-HD Image {index + 1}/{len(pages_data)}: {image_name}...")
             page.set_content(html_content, wait_until="load")
-            page.evaluate("document.fonts.ready")
             page.screenshot(path=image_name, full_page=False)
 
             upload_url = f"https://graph.facebook.com/v19.0/{PAGE_ID}/photos"
