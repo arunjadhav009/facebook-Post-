@@ -40,47 +40,105 @@ def generate_html_page(data):
 <html lang="mr">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap');
-  * {{ box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }}
+  * {{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+  }}
   body {{
-    width: 1080px; height: 1080px; background: #f1f5f9;
-    font-family: 'Noto Sans Devanagari', 'Arial', sans-serif;
-    padding: 24px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
+    width: 1080px;
+    height: 1080px;
+    background: #f1f5f9;
+    font-family: 'Noto Sans Devanagari', 'Noto Sans', sans-serif;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
   }}
   .header-card {{
     background: linear-gradient(135deg, #881337 0%, #be123c 60%, #e11d48 100%);
-    border-radius: 18px; padding: 20px 24px; color: #ffffff;
+    border-radius: 18px;
+    padding: 20px 24px;
+    color: #ffffff;
     box-shadow: 0 10px 25px -5px rgba(136, 19, 55, 0.35);
     border: 1px solid rgba(255, 255, 255, 0.15);
   }}
   .header-card h1 {{
-    font-size: 34px; font-weight: 800; text-align: center; letter-spacing: 0.5px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); margin-bottom: 12px;
+    font-size: 34px;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-bottom: 12px;
   }}
-  .meta-chips {{ display: flex; justify-content: space-between; align-items: center; gap: 12px; }}
+  .meta-chips {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }}
   .chip {{
-    background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.25); padding: 6px 18px;
-    border-radius: 30px; font-size: 19px; font-weight: 700;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 6px 18px;
+    border-radius: 30px;
+    font-size: 19px;
+    font-weight: 700;
   }}
   .table-wrapper {{
-    background: #ffffff; border-radius: 18px; overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06); border: 1px solid #cbd5e1;
-    margin: 12px 0; flex-grow: 1; display: flex; flex-direction: column;
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid #cbd5e1;
+    margin: 12px 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
   }}
-  table {{ width: 100%; border-collapse: collapse; }}
+  table {{
+    width: 100%;
+    border-collapse: collapse;
+  }}
   thead th {{
-    background: #1e293b; color: #ffffff; font-size: 19px; font-weight: 700;
-    padding: 14px 10px; text-align: center; border-bottom: 2px solid #0f172a;
+    background: #1e293b;
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: 700;
+    padding: 14px 10px;
+    text-align: center;
+    border-bottom: 2px solid #0f172a;
   }}
   .footer-bar {{
-    background: #0f172a; color: #f8fafc; border-radius: 14px;
-    padding: 14px 24px; display: flex; justify-content: space-between; align-items: center;
+    background: #0f172a;
+    color: #f8fafc;
+    border-radius: 14px;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
   }}
-  .footer-bar .left {{ font-size: 19px; font-weight: 700; color: #fbbf24; }}
-  .footer-bar .right {{ font-size: 18px; font-weight: 600; color: #cbd5e1; }}
+  .footer-bar .left {{
+    font-size: 19px;
+    font-weight: 700;
+    color: #fbbf24;
+  }}
+  .footer-bar .right {{
+    font-size: 18px;
+    font-weight: 600;
+    color: #cbd5e1;
+  }}
 </style>
 </head>
 <body>
@@ -133,7 +191,12 @@ def main():
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=True,
-            args=["--no-sandbox", "--disable-setuid-sandbox", "--enable-font-antialiasing"]
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--font-render-hinting=none",
+                "--enable-font-antialiasing"
+            ]
         )
         context = browser.new_context(
             viewport={"width": 1080, "height": 1080},
