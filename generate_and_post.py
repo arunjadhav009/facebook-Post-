@@ -27,12 +27,12 @@ def generate_html_page(data):
 
         table_rows += f"""
         <tr style="background: {bg}; border-bottom: 1px solid #e2e8f0;">
-          <td style="text-align: left; padding: 12px 14px; font-weight: 700; font-size: 21px; color: #1e293b;">{apmc}</td>
-          <td style="text-align: center; padding: 12px 8px; font-size: 19px; color: #475569; font-weight: 500;">{variety}</td>
-          <td style="text-align: center; padding: 12px 8px; font-size: 20px; font-weight: 700; color: #0f172a;">{qty}</td>
-          <td style="text-align: center; padding: 12px 8px; font-size: 20px; font-weight: 700; color: #dc2626;">₹{lrate}</td>
-          <td style="text-align: center; padding: 12px 8px; font-size: 20px; font-weight: 700; color: #16a34a;">₹{hrate}</td>
-          <td style="text-align: center; padding: 12px 8px; font-size: 22px; font-weight: 800; color: #881337; background: rgba(225, 29, 72, 0.07); border-radius: 8px;">₹{modal}</td>
+          <td style="text-align: left; padding: 7px 12px; font-weight: 700; font-size: 19px; color: #1e293b;">{apmc}</td>
+          <td style="text-align: center; padding: 7px 6px; font-size: 17px; color: #475569; font-weight: 500;">{variety}</td>
+          <td style="text-align: center; padding: 7px 6px; font-size: 18px; font-weight: 700; color: #0f172a;">{qty}</td>
+          <td style="text-align: center; padding: 7px 6px; font-size: 18px; font-weight: 700; color: #dc2626;">₹{lrate}</td>
+          <td style="text-align: center; padding: 7px 6px; font-size: 18px; font-weight: 700; color: #16a34a;">₹{hrate}</td>
+          <td style="text-align: center; padding: 7px 6px; font-size: 19px; font-weight: 800; color: #881337; background: rgba(225, 29, 72, 0.08); border-radius: 6px;">₹{modal}</td>
         </tr>
         """
 
@@ -53,7 +53,7 @@ def generate_html_page(data):
     height: 1080px;
     background: #f1f5f9;
     font-family: 'Noto Sans Devanagari', 'Noto Sans', sans-serif;
-    padding: 24px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -61,76 +61,73 @@ def generate_html_page(data):
   }}
   .header-card {{
     background: linear-gradient(135deg, #881337 0%, #be123c 60%, #e11d48 100%);
-    border-radius: 18px;
-    padding: 20px 24px;
+    border-radius: 16px;
+    padding: 14px 20px;
     color: #ffffff;
-    box-shadow: 0 10px 25px -5px rgba(136, 19, 55, 0.35);
+    box-shadow: 0 6px 18px rgba(136, 19, 55, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.15);
   }}
   .header-card h1 {{
-    font-size: 34px;
+    font-size: 30px;
     font-weight: 800;
     text-align: center;
     letter-spacing: 0.5px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }}
   .meta-chips {{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
   }}
   .chip {{
-    background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    padding: 6px 18px;
-    border-radius: 30px;
-    font-size: 19px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 17px;
     font-weight: 700;
   }}
   .table-wrapper {{
     background: #ffffff;
-    border-radius: 18px;
+    border-radius: 14px;
     overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
     border: 1px solid #cbd5e1;
-    margin: 12px 0;
+    margin: 10px 0;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
   }}
   table {{
     width: 100%;
+    height: 100%;
     border-collapse: collapse;
   }}
   thead th {{
     background: #1e293b;
     color: #ffffff;
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 700;
-    padding: 14px 10px;
+    padding: 10px 8px;
     text-align: center;
     border-bottom: 2px solid #0f172a;
   }}
   .footer-bar {{
     background: #0f172a;
     color: #f8fafc;
-    border-radius: 14px;
-    padding: 14px 24px;
+    border-radius: 12px;
+    padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }}
   .footer-bar .left {{
-    font-size: 19px;
+    font-size: 17px;
     font-weight: 700;
     color: #fbbf24;
   }}
   .footer-bar .right {{
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: #cbd5e1;
   }}
@@ -150,7 +147,7 @@ def generate_html_page(data):
     <table>
       <thead>
         <tr>
-          <th style="text-align: left; padding-left: 16px; width: 28%;">बाजार समिती</th>
+          <th style="text-align: left; padding-left: 14px; width: 28%;">बाजार समिती</th>
           <th style="width: 16%;">जात/प्रकार</th>
           <th style="width: 14%;">आवक (क्विं.)</th>
           <th style="width: 14%;">कमी भाव</th>
