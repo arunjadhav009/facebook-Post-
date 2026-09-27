@@ -26,12 +26,12 @@ def generate_html_page(data):
     for idx, r in enumerate(rows):
         is_even = (idx % 2 == 1)
         bg = "#f8fafc" if is_even else "#ffffff"
-        apmc = r.get("APMC", "-")
+        apmc = r.get("APMC", r.get("Market", "-"))
         variety = r.get("Variety", "-")
         qty = r.get("Quantity", "0")
-        lrate = r.get("Lrate", "0")
-        hrate = r.get("Hrate", "0")
-        modal = r.get("Modal", "0")
+        lrate = r.get("Lrate", r.get("Min_Price", "0"))
+        hrate = r.get("Hrate", r.get("Max_Price", "0"))
+        modal = r.get("Modal", r.get("Modal_Price", "0"))
 
         table_rows += f"""
         <tr style="background: {bg}; border-bottom: 1.5px solid #e2e8f0; height: 55px;">
@@ -259,68 +259,88 @@ def main():
     fb_resp = requests.post(feed_url, data=post_payload)
     print("Facebook Post Response:", fb_resp.text)
 
-    # Instagram वर Multi-Photo Carousel Post करणे
+    # Instagram वर पोस्ट करणे (Single Image किंवा Carousel)
     if ig_image_urls:
-        print("\n--- 2. Publishing to Instagram (@greensourceonion) ---")
-        ig_container_ids = []
+        print(f"\n--- 2. Publishing to Instagram (@greensourceonion) --- [Total Images: {len(ig_image_urls)}]")
+        
+        creation_id = None
 
-        # प्रत्येक इमेजचा Instagram Item Container तयार करणे
-        for idx, img_url in enumerate(ig_image_urls):
-            create_item_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media"
-            item_payload = {
-                "image_url": img_url,
-                "is_carousel_item": "true",
-                "access_token": FB_TOKEN
-            }
-            c_res = requests.post(create_item_url, data=item_payload).json()
-            if "id" in c_res:
-                ig_container_ids.append(c_res["id"])
-                print(f"IG Carousel item {idx + 1} container created: {c_res['id']}")
-            else:
-                print(f"Error creating IG item {idx + 1}: {c_res}")
-
-        if ig_container_ids:
-            print("Waiting 8 seconds for item containers to process...")
-            time.sleep(8)
-
-            main_carousel_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media"
-            main_payload = {
-                "media_type": "CAROUSEL",
-                "children": json.dumps(ig_container_ids),
+        # जर फक्त १ च इमेज असेल (Single Image Post)
+        if len(ig_image_urls) == 1:
+            print("Detected 1 image. Creating Single Image Container for Instagram...")
+            create_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media"
+            payload = {
+                "image_url": ig_image_urls[0],
                 "caption": POST_CAPTION,
                 "access_token": FB_TOKEN
             }
-            main_res = requests.post(main_carousel_url, data=main_payload).json()
-
-            if "id" in main_res:
-                creation_id = main_res["id"]
-                print(f"Main IG Carousel Container ID: {creation_id}")
-
-                # कंटेनर स्टेटस 'FINISHED' होईपर्यंत तपासणे (Status Polling Loop)
-                status_url = f"https://graph.facebook.com/v19.0/{creation_id}?fields=status_code&access_token={FB_TOKEN}"
-                is_ready = False
-                for attempt in range(1, 10):
-                    print(f"Checking media readiness (Attempt {attempt}/9)...")
-                    s_res = requests.get(status_url).json()
-                    status = s_res.get("status_code", "")
-                    print(f"Current Status: {status}")
-
-                    if status == "FINISHED":
-                        is_ready = True
-                        break
-                    elif status == "ERROR":
-                        print("Meta reported an error processing this carousel container.")
-                        break
-                    time.sleep(5)
-
-                if is_ready:
-                    publish_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media_publish"
-                    pub_res = requests.post(publish_url, data={"creation_id": creation_id, "access_token": FB_TOKEN}).json()
-                    print("Instagram Final Publish Response:", pub_res)
-                else:
-                    print("Could not publish: Media container was not ready in time.")
+            res = requests.post(create_url, data=payload).json()
+            if "id" in res:
+                creation_id = res["id"]
+                print(f"Single Image Container ID: {creation_id}")
             else:
-                print("Error creating main IG carousel:", main_res)
+                print("Error creating Single Image container:", res)
+
+        # जर २ किंवा जास्त इमेजेस असतील (Carousel Post)
+        else:
+            print(f"Detected {len(ig_image_urls)} images. Creating Carousel Container for Instagram...")
+            ig_container_ids = []
+            for idx, img_url in enumerate(ig_image_urls):
+                create_item_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media"
+                item_payload = {
+                    "image_url": img_url,
+                    "is_carousel_item": "true",
+                    "access_token": FB_TOKEN
+                }
+                c_res = requests.post(create_item_url, data=item_payload).json()
+                if "id" in c_res:
+                    ig_container_ids.append(c_res["id"])
+                    print(f"IG Carousel item {idx + 1} container created: {c_res['id']}")
+                else:
+                    print(f"Error creating IG item {idx + 1}: {c_res}")
+
+            if ig_container_ids:
+                print("Waiting 8 seconds for item containers to process...")
+                time.sleep(8)
+
+                main_carousel_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media"
+                main_payload = {
+                    "media_type": "CAROUSEL",
+                    "children": json.dumps(ig_container_ids),
+                    "caption": POST_CAPTION,
+                    "access_token": FB_TOKEN
+                }
+                main_res = requests.post(main_carousel_url, data=main_payload).json()
+                if "id" in main_res:
+                    creation_id = main_res["id"]
+                    print(f"Main IG Carousel Container ID: {creation_id}")
+                else:
+                    print("Error creating main IG carousel:", main_res)
+
+        # पब्लिश करणे (Status Polling सह)
+        if creation_id:
+            status_url = f"https://graph.facebook.com/v19.0/{creation_id}?fields=status_code&access_token={FB_TOKEN}"
+            is_ready = False
+            for attempt in range(1, 10):
+                print(f"Checking media readiness (Attempt {attempt}/9)...")
+                s_res = requests.get(status_url).json()
+                status = s_res.get("status_code", "")
+                print(f"Current Status: {status}")
+
+                if status == "FINISHED":
+                    is_ready = True
+                    break
+                elif status == "ERROR":
+                    print("Meta reported an error processing this container.")
+                    break
+                time.sleep(5)
+
+            if is_ready:
+                publish_url = f"https://graph.facebook.com/v19.0/{IG_USER_ID}/media_publish"
+                pub_res = requests.post(publish_url, data={"creation_id": creation_id, "access_token": FB_TOKEN}).json()
+                print("Instagram Final Publish Response:", pub_res)
+            else:
+                print("Could not publish: Media container was not ready in time.")
 
 if __name__ == "__main__":
     main()
